@@ -1,7 +1,11 @@
 package mapreduce
 
 import (
+	"encoding/json"
 	"hash/fnv"
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 func doMap(
@@ -44,11 +48,35 @@ func doMap(
 	// out a data structure as a JSON string to a file using the commented
 	// code below. The corresponding decoding functions can be found in
 	// common_reduce.go.
-	//
-	//   enc := json.NewEncoder(file)
-	//   for _, kv := ... {
-	//     err := enc.Encode(&kv)
-	//
+	content, err := ioutil.ReadFile(inFile)
+	if err != nil {
+		log.Fatal("readFile: ", err)
+	}
+	value := string(content[:])
+	var pair []KeyValue = mapF(inFile, value)
+
+	encoders := make([]*json.Encoder, nReduce)
+	files := make([]os.File, nReduce)
+	for i := 0; i < nReduce ; i++ {
+		fileName := reduceName(jobName, mapTask, i)
+		file, err := os.Create(fileName)
+		if err != nil {
+			log.Fatal("createFile: ", err)
+		}
+		files = append(files, *file)
+		encoders[i] = json.NewEncoder(file)
+	}
+	for _, kv := range pair {
+		r := ihash(kv.Key) % nReduce
+		err := encoders[r].Encode(&kv)
+		if err != nil {
+			log.Fatal("encode: ", err)
+		}
+	}
+	for _, file := range files{
+		file.Close()
+	}
+
 	// Remember to close the file after you have written all the values!
 	//
 	// Your code here (Part I).
