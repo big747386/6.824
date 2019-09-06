@@ -21,7 +21,7 @@ func mapF(filename string, contents string) []mapreduce.KeyValue {
 	var pair []mapreduce.KeyValue
 	ans := make(map[string]int)
 	f := func(c rune) bool {
-		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+		return !unicode.IsLetter(c)
 	}
 	strs := strings.FieldsFunc(contents, f)
 	for _, str := range strs {
