@@ -19,20 +19,12 @@ import (
 func mapF(filename string, contents string) []mapreduce.KeyValue {
 	// Your code here (Part II).
 	var pair []mapreduce.KeyValue
-	ans := make(map[string]int)
 	f := func(c rune) bool {
 		return !unicode.IsLetter(c)
 	}
 	strs := strings.FieldsFunc(contents, f)
 	for _, str := range strs {
-		if _, ok := ans[str]; !ok  {
-			ans[str] = 1;
-		} else {
-			ans[str]++;
-		}
-	}
-	for item := range ans {
-		pair = append(pair, mapreduce.KeyValue{item, strconv.Itoa(ans[item])})
+		pair = append(pair, mapreduce.KeyValue{str, ""})
 	}
 	return pair
 }
@@ -44,12 +36,7 @@ func mapF(filename string, contents string) []mapreduce.KeyValue {
 //
 func reduceF(key string, values []string) string {
 	// Your code here (Part II).
-	count := 0
-	for _, value := range values{
-		i, _ := strconv.Atoi(value)
-		count += i
-	}
-	return strconv.Itoa(count)
+	return strconv.Itoa(len(values))
 }
 
 // Can be run in 3 ways:
