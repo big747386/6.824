@@ -75,8 +75,8 @@ func doReduce(
 			}
 			if _, ok := pair[kv.Key]; !ok {
 				keys = append(keys, kv.Key)
-				pair[kv.Key] = append(pair[kv.Key], kv.Value)
 			}
+			pair[kv.Key] = append(pair[kv.Key], kv.Value)
 		}
 		sort.Strings(keys)
 		out, err := os.Create(outFile)
