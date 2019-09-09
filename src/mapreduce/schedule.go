@@ -39,7 +39,7 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 		doTaskArgs := DoTaskArgs{jobName, mapFiles[i], phase, i, n_other}
 		go func(registerChan chan string, doTaskArgs DoTaskArgs) {
 			address := <- registerChan
-			call(address, "Work.DoTask", doTaskArgs, nil)
+			call(address, "Worker.DoTask", doTaskArgs, nil)
 			registerChan <- address
 			wg.Done()
 			return
