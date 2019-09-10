@@ -35,11 +35,19 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	//
 	var wg sync.WaitGroup
 	wg.Add(ntasks)
+	//var isDone map[int]bool
 	for i := 0; i < ntasks; i++ {
 		doTaskArgs := DoTaskArgs{jobName, mapFiles[i], phase, i, n_other}
 		go func(registerChan chan string, doTaskArgs DoTaskArgs) {
 			address := <- registerChan
-			call(address, "Worker.DoTask", doTaskArgs, nil)
+			ok := call(address, "Worker.DoTask", doTaskArgs, nil)
+			for ok == false {
+				//isDone[doTaskArgs.TaskNumber] = false
+				//return
+				address = <- registerChan
+				ok = call(address, "Worker.DoTask", doTaskArgs, nil)
+			}
+			//应不应该把错误的worker重新放入队列
 			go func() {
 				registerChan <- address
 			}()
