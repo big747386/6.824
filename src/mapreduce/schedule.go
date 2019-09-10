@@ -35,10 +35,12 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	// Your code here (Part III, Part IV).
 	//
 	isDone := make(map[int]bool)
+	sem := make(semaphore, ntasks)
 	for i := 0; i < ntasks; i++ {
 		isDone[i] = false
+		e := new(Empty)
+		sem <- e
 	}
-	sem := make(semaphore, ntasks)
 	i := 0
 	for true {
 		if len(sem) == 0{
