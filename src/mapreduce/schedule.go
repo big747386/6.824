@@ -2,9 +2,10 @@ package mapreduce
 
 import (
 	"fmt"
-	"sync"
 )
 
+type Empty interface {}
+type semaphore chan Empty
 //
 // schedule() starts and waits for all tasks in the given phase (mapPhase
 // or reducePhase). the mapFiles argument holds the names of the files that
@@ -33,28 +34,37 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	//
 	// Your code here (Part III, Part IV).
 	//
-	var wg sync.WaitGroup
-	wg.Add(ntasks)
-	//var isDone map[int]bool
+	var isDone map[int]bool
 	for i := 0; i < ntasks; i++ {
+		isDone[i] = false
+	}
+	sem := make(semaphore, ntasks)
+	i := 0
+	for true {
+		if len(sem) == 0{
+			break
+		}
+		for i = 0; i < ntasks; i++  {
+			if isDone[i] == false {
+				break
+			}
+		}
 		doTaskArgs := DoTaskArgs{jobName, mapFiles[i], phase, i, n_other}
 		go func(registerChan chan string, doTaskArgs DoTaskArgs) {
 			address := <- registerChan
 			ok := call(address, "Worker.DoTask", doTaskArgs, nil)
-			for ok == false {
-				//isDone[doTaskArgs.TaskNumber] = false
-				//return
-				address = <- registerChan
-				ok = call(address, "Worker.DoTask", doTaskArgs, nil)
+			if ok == false {
+				isDone[doTaskArgs.TaskNumber] = false
+				return
 			}
 			//应不应该把错误的worker重新放入队列
 			go func() {
 				registerChan <- address
 			}()
-			wg.Done()
+			isDone[doTaskArgs.TaskNumber] = true
+			<- sem
 			return
 		}(registerChan, doTaskArgs)
 	}
-	wg.Wait()
 	fmt.Printf("Schedule: %v done\n", phase)
 }
