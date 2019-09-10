@@ -34,7 +34,7 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	//
 	// Your code here (Part III, Part IV).
 	//
-	var isDone map[int]bool
+	isDone := make(map[int]bool)
 	for i := 0; i < ntasks; i++ {
 		isDone[i] = false
 	}
